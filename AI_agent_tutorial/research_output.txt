@@ -1,0 +1,21 @@
+--- Research Output ---
+Timestamp: 2025-06-22 16:31:34
+
+Research Report
+==================
+
+Topic: Quantum Computing
+
+Summary
+-------
+Quantum computing is a type of computation that uses quantum mechanics to solve complex problems faster than classical computers. It leverages phenomena like superposition and entanglement to perform computations in a fundamentally different way. While still in its early stages, quantum computing has the potential to revolutionize fields like medicine, materials science, finance, and artificial intelligence.
+
+Sources
+-------
+
+
+Tools Used
+---------
+
+
+

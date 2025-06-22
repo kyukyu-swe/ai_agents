@@ -6,6 +6,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from tools import save_tool, search_tool, wiki_tool
+import json
 
 
 load_dotenv()
@@ -37,9 +38,14 @@ parser = PydanticOutputParser(pydantic_object=ResearchResponse)
 prompt = ChatPromptTemplate.from_messages([
     ("system", """You are a research assistant that helps with generating research papers.
     You have access to the following tools:
-    - save_text_to_file: Saves structured research data to a text file
+    - save_text_to_file: Saves structured research data to a text file. Use this tool when the user asks to save the research.
     - search: Search the web for information
     - wikipedia: Query Wikipedia for information
+    
+    IMPORTANT INSTRUCTIONS FOR SAVING:
+    1. When the user's query contains words like 'save', 'store', or 'write to file', you MUST use the save_text_to_file tool
+    2. When saving, format the data as a clear research report with sections
+    3. Include all sources and findings in the saved file
     
     Use these tools to help answer the user's questions and conduct research.
     Format your final response according to this structure: {format_instructions}
@@ -64,9 +70,31 @@ agent_executor = AgentExecutor(
     verbose=True
 )
 
+def format_research_for_saving(response):
+    """Format the research response into a readable text format"""
+    formatted_text = f"""Research Report
+==================
+
+Topic: {response.topic}
+
+Summary
+-------
+{response.summary}
+
+Sources
+-------
+{"".join(['- ' + source + '\\n' for source in response.sources])}
+
+Tools Used
+---------
+{"".join(['- ' + tool + '\\n' for tool in response.tools_used])}
+"""
+    return formatted_text
+
 # Get user input for the research query
 print("\n=== AI Research Assistant ===")
-print("Enter your research query. Example: 'Research the impact of artificial intelligence on healthcare'")
+print("Enter your research query. Example: 'Research the impact of artificial intelligence on healthcare and save the findings'")
+print("Add 'save' or 'save to file' in your query to automatically save the results")
 print("Type 'quit' to exit")
 
 while True:
@@ -82,13 +110,21 @@ while True:
     
     print("\nResearching... This may take a moment...")
     try:
+        # Execute the research
         result = agent_executor.invoke({"input": query})
         print("\nRaw Response:")
         print(result)
 
+        # Parse the structured response
         structured_response = parser.parse(result["output"])
         print("\nStructured Response:")
         print(structured_response)
+        
+        # If the query contains save-related keywords, explicitly save the results
+        if any(word in query.lower() for word in ['save', 'store', 'write', 'file']):
+            formatted_research = format_research_for_saving(structured_response)
+            save_result = save_tool.run(formatted_research)
+            print(f"\nSave Status: {save_result}")
         
     except Exception as e:
         print(f"\nError occurred: {e}")
