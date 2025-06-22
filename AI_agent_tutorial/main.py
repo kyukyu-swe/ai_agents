@@ -64,18 +64,36 @@ agent_executor = AgentExecutor(
     verbose=True
 )
 
-# Test the agent
-query = "Research the impact of artificial intelligence on healthcare and save the findings"
-result = agent_executor.invoke({"input": query})
-print("\nRaw Response:")
-print(result)
+# Get user input for the research query
+print("\n=== AI Research Assistant ===")
+print("Enter your research query. Example: 'Research the impact of artificial intelligence on healthcare'")
+print("Type 'quit' to exit")
 
-try:
-    structured_response = parser.parse(result["output"])
-    print("\nStructured Response:")
-    print(structured_response)
-except Exception as e:
-    print(f"\nError parsing response: {e}")
-    print("Raw output:", result["output"])
+while True:
+    query = input("\nEnter your research query: ").strip()
+    
+    if query.lower() == 'quit':
+        print("Thank you for using the AI Research Assistant!")
+        break
+    
+    if not query:
+        print("Please enter a valid query.")
+        continue
+    
+    print("\nResearching... This may take a moment...")
+    try:
+        result = agent_executor.invoke({"input": query})
+        print("\nRaw Response:")
+        print(result)
+
+        structured_response = parser.parse(result["output"])
+        print("\nStructured Response:")
+        print(structured_response)
+        
+    except Exception as e:
+        print(f"\nError occurred: {e}")
+        print("Please try another query.")
+    
+    print("\n" + "="*50)
 
 
